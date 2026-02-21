@@ -41,8 +41,36 @@ docker pull opencfd/openfoam-default:2512
 
 ### 3. Clone the Repository
 
+#### 3a. Install Git
+
+**macOS:**
+```bash
+# Git is bundled with Xcode Command Line Tools
+xcode-select --install
+```
+Verify:
+```bash
+git --version
+```
+
+#### 3b. Configure Git (first-time setup)
+
+```bash
+git config --global user.name "Your Name"
+git config --global user.email "your@email.com"
+```
+
+#### 3c. Clone or Update the Repository
+
+**First time — clone the repository:**
 ```bash
 git clone https://github.com/emredagli/Rheology-Simulation-of-Vein-Grafts "$HOME/Rheology-Simulation-of-Vein-Grafts"
+```
+
+**Already cloned — get the latest changes:**
+```bash
+cd "$HOME/Rheology-Simulation-of-Vein-Grafts"
+git pull
 ```
 
 ### 4. Create the Run Folder
