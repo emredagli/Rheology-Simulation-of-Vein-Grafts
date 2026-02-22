@@ -22,26 +22,9 @@ Donor Artery          Recipient Artery
 
 ## Prerequisites
 
-### 1. Docker
+### 1. Clone the Repository
 
-Install Docker Desktop for Mac:
-- https://docs.docker.com/desktop/setup/install/mac-install/
-
-Verify installation:
-```bash
-docker --version
-docker info
-```
-
-### 2. Pull the OpenFOAM v2512 Image
-
-```bash
-docker pull opencfd/openfoam-default:2512
-```
-
-### 3. Clone the Repository
-
-#### 3a. Install Git
+#### 1a. Install Git
 
 **macOS:**
 ```bash
@@ -53,14 +36,14 @@ Verify:
 git --version
 ```
 
-#### 3b. Configure Git (first-time setup)
+#### 1b. Configure Git (first-time setup)
 
 ```bash
 git config --global user.name "Your Name"
 git config --global user.email "your@email.com"
 ```
 
-#### 3c. Clone or Update the Repository
+#### 1c. Clone or Update the Repository
 
 **First time — clone the repository:**
 ```bash
@@ -71,6 +54,23 @@ git clone https://github.com/emredagli/Rheology-Simulation-of-Vein-Grafts "$HOME
 ```bash
 cd "$HOME/Rheology-Simulation-of-Vein-Grafts"
 git pull
+```
+
+### 2. Docker
+
+Install Docker Desktop for Mac:
+- https://docs.docker.com/desktop/setup/install/mac-install/
+
+Verify installation:
+```bash
+docker --version
+docker info
+```
+
+### 3. Pull the OpenFOAM v2512 Image
+
+```bash
+docker pull opencfd/openfoam-default:2512
 ```
 
 ### 4. Create the Run Folder
@@ -164,6 +164,10 @@ Each experiment folder under `experiments/` follows the standard OpenFOAM case s
 
 **Solver:** `icoFoam` (incompressible, laminar, transient)
 
+**Mesh approach:** Full 3D cylinder — O-grid (butterfly) mesh with 5 hex blocks: 1 square centre block + 4 outer blocks with circular arc edges. Both walls included directly. Radial grading 4:1 toward the wall for better boundary resolution. Total: ~25,000 cells (12×12×40 centre + 4×10×12×40 outer).
+
+**Run time:** 10 s — exceeds the viscous diffusion time scale (r²/ν ≈ 7.6 s), ensuring the fully developed parabolic profile is reached everywhere in the tube.
+
 **Validation:** Verify parabolic velocity profile at the outlet (Hagen-Poiseuille solution).
 
 **Files location:** `experiments/01_simple_laminar/`
@@ -174,9 +178,104 @@ Each experiment folder under `experiments/` follows the standard OpenFOAM case s
 cp -r /work/experiments/01_simple_laminar /work/run/
 cd /work/run/01_simple_laminar
 blockMesh
+checkMesh
 icoFoam
 touch 01_simple_laminar.foam   # For ParaView
 ```
+
+#### Visualising in ParaView — step by step
+
+**Step 1 — Open the case**
+1. On macOS (outside Docker), open ParaView.
+2. **File → Open** → navigate to `~/Rheology-Simulation-of-Vein-Grafts/run/01_simple_laminar/`.
+3. Select `01_simple_laminar.foam` → **OK** → click **Apply**.
+   You will see a full 3D cylinder in the viewport.
+
+**Step 2 — Go to the last time step**
+4. Click the **⏭ Last Frame** button in the toolbar to jump to t = 10 s (fully developed flow).
+
+**Step 3 — Colour by axial velocity**
+5. Change the field dropdown from `p` to **U**, component **X**.
+6. Click **Rescale** (colorbar icon) to fit the range.
+   You will see **blue at the wall** (U = 0, no-slip) grading to **red at the centre** (peak ≈ 0.2 m/s).
+
+**Step 4 — Clip the cylinder to see inside**
+7. Select `01_simple_laminar.foam` in the Pipeline Browser.
+8. **Filters → Search** (or press **Space**) → type `Clip` → select **Clip** → **Apply**.
+   Set **Normal = (0, 0, 1)**, **Origin = (0, 0, 0)** to remove the top half.
+   You will see the inside of the cylinder coloured by velocity.
+
+**Step 5 — Slice down the middle to see the full profile**
+9. Select `01_simple_laminar.foam` in the Pipeline Browser.
+10. **Filters → Search** → type `Slice` → select **Slice** → **Apply**.
+    Set **Normal = (0, 0, 1)**, **Origin = (0, 0, 0)**.
+    Colour by **U → X** and press **F** to fit the view.
+    You will see the parabolic colour gradient: blue at both walls (U = 0), red at the centreline (U ≈ 0.2 m/s).
+    > **Note:** The parabola is shown as a colour gradient on the slice surface, not as a drawn curve.
+
+**Step 6 — Verify the parabolic profile numerically (Plot Over Line)**
+11. Select `01_simple_laminar.foam` in the Pipeline Browser (important: select the source, not Clip or Slice).
+12. **Filters → Search** → type `Plot Over Line` → select it → **Apply**.
+    Set:
+    - **Point 1**: `(0.09, -0.005, 0)` — near outlet, bottom wall
+    - **Point 2**: `(0.09,  0.005, 0)` — near outlet, top wall
+13. A **LineChartView** opens on the right. In the chart series list, **uncheck everything except `U_X`**.
+    You should see a smooth parabola: zero at both walls (y = ±0.005), peak ≈ 0.2 m/s at the centre (y = 0).
+
+**Step 7 — Streamlines (standard method for all experiments)**
+
+Streamlines are the primary visualization tool across all experiments. They naturally reveal recirculation zones, flow separation, and secondary flows in later experiments (junctions, grafts).
+
+1. Select `01_simple_laminar.foam` in the Pipeline Browser.
+2. **Filters → Search** → type `Stream Tracer` → select it.
+3. Set in Properties:
+   - **Vectors**: `U`
+   - **Seed Type**: `Line Source`
+   - **Point 1**: `(0.001, -0.004, 0)` — near inlet, close to wall
+   - **Point 2**: `(0.001,  0.004, 0)` — near inlet, opposite side
+   - **Resolution**: `20`
+   - **Max Streamline Length**: `0.2`
+4. Click **Apply** → colour by **U → Magnitude**.
+
+In a straight tube the streamlines will be straight and parallel. In future junction and graft experiments the same setup will automatically reveal recirculation zones and spiral flows.
+
+**Step 8 — Velocity arrows on a cross-section (Glyph)**
+
+1. Select `Slice1` in the Pipeline Browser.
+2. **Filters → Search** → type `Glyph` → select it.
+3. Set:
+   - **Glyph Type**: `Arrow`
+   - **Orientation Array**: `U`
+   - **Scale Array**: `U`
+   - **Scale Factor**: `0.02`
+   - **Glyph Mode**: `Every Nth Point`, N = `2`
+4. Click **Apply**.
+   Arrows show longer in the centre (fast) and shorter/zero at the walls.
+
+**Expected result:**
+
+| Quantity | Expected value |
+|---|---|
+| Peak (centreline) velocity | ≈ 0.20 m/s (= 2 × U_inlet) |
+| Wall velocity | 0 m/s (no-slip) |
+| Profile shape | Parabola (Hagen-Poiseuille) |
+| Reynolds number | ≈ 303 (laminar ✓) |
+
+**ParaView screenshot:**
+
+![Experiment 01 — Simple Laminar Flow](assets/img/01_simple_laminar.jpg)
+
+
+> **One-click ParaView macro (recommended shortcut)**
+>
+> Instead of following the manual steps above on each time, you can run the pre-built visualisation script as a ParaView macro:
+>
+> 1. Open `assets/paraview/standard_viz.py` in a text editor and set `CASE_DIR` and `RADIUS` in the *"Macro defaults"* section at the top.
+> 2. Open ParaView GUI.
+> 3. **Tools → Macros → Add new macro** → select `assets/paraview/standard_viz.py` → **OK**.
+> 4. Click the macro from the **Macros** menu.
+>
+> The macro builds the full pipeline automatically (Clip, Slice, StreamTracer, Glyph, Plot Over Line) and displays all views inside ParaView. To switch cases, update `CASE_DIR` in the file and re-run.
 
 ---
 
@@ -408,7 +507,3 @@ Useful filters for vascular flow analysis:
 - OpenFOAM Repository: https://gitlab.com/openfoam/core/openfoam
 - ParaView User's Guide: https://docs.paraview.org/en/latest/UsersGuide/index.html
 - OpenStreetMap Features: https://wiki.openstreetmap.org/wiki/Map_features
-
----
-
-*This README serves as a specification document for AI-assisted generation of OpenFOAM case files. Each experiment section defines the required geometry, boundary conditions, solver settings, and expected outputs needed to populate the corresponding folder under `experiments/`.*
