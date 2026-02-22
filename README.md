@@ -185,44 +185,44 @@ touch 01_simple_laminar.foam   # For ParaView
 
 #### Visualising in ParaView — step by step
 
-**Step 1 — Open the case**
+##### Step 1 — Open the case
 1. On macOS (outside Docker), open ParaView.
 2. **File → Open** → navigate to `~/Rheology-Simulation-of-Vein-Grafts/run/01_simple_laminar/`.
 3. Select `01_simple_laminar.foam` → **OK** → click **Apply**.
    You will see a full 3D cylinder in the viewport.
 
-**Step 2 — Go to the last time step**
-4. Click the **⏭ Last Frame** button in the toolbar to jump to t = 10 s (fully developed flow).
+##### Step 2 — Go to the last time step
+1. Click the **⏭ Last Frame** button in the toolbar to jump to t = 10 s (fully developed flow).
 
-**Step 3 — Colour by axial velocity**
-5. Change the field dropdown from `p` to **U**, component **X**.
-6. Click **Rescale** (colorbar icon) to fit the range.
+##### Step 3 — Colour by axial velocity
+1. Change the field dropdown from `p` to **U**, component **X**.
+2. Click **Rescale** (colorbar icon) to fit the range.
    You will see **blue at the wall** (U = 0, no-slip) grading to **red at the centre** (peak ≈ 0.2 m/s).
 
-**Step 4 — Clip the cylinder to see inside**
-7. Select `01_simple_laminar.foam` in the Pipeline Browser.
-8. **Filters → Search** (or press **Space**) → type `Clip` → select **Clip** → **Apply**.
+##### Step 4 — Clip the cylinder to see inside
+1. Select `01_simple_laminar.foam` in the Pipeline Browser.
+2. **Filters → Search** (or press **Space**) → type `Clip` → select **Clip** → **Apply**.
    Set **Normal = (0, 0, 1)**, **Origin = (0, 0, 0)** to remove the top half.
    You will see the inside of the cylinder coloured by velocity.
 
-**Step 5 — Slice down the middle to see the full profile**
-9. Select `01_simple_laminar.foam` in the Pipeline Browser.
-10. **Filters → Search** → type `Slice` → select **Slice** → **Apply**.
-    Set **Normal = (0, 0, 1)**, **Origin = (0, 0, 0)**.
-    Colour by **U → X** and press **F** to fit the view.
-    You will see the parabolic colour gradient: blue at both walls (U = 0), red at the centreline (U ≈ 0.2 m/s).
-    > **Note:** The parabola is shown as a colour gradient on the slice surface, not as a drawn curve.
+##### Step 5 — Slice down the middle to see the full profile
+1. Select `01_simple_laminar.foam` in the Pipeline Browser.
+2. **Filters → Search** → type `Slice` → select **Slice** → **Apply**.
+   Set **Normal = (0, 0, 1)**, **Origin = (0, 0, 0)**.
+   Colour by **U → X** and press **F** to fit the view.
+   You will see the parabolic colour gradient: blue at both walls (U = 0), red at the centreline (U ≈ 0.2 m/s).
+   > **Note:** The parabola is shown as a colour gradient on the slice surface, not as a drawn curve.
 
-**Step 6 — Verify the parabolic profile numerically (Plot Over Line)**
-11. Select `01_simple_laminar.foam` in the Pipeline Browser (important: select the source, not Clip or Slice).
-12. **Filters → Search** → type `Plot Over Line` → select it → **Apply**.
-    Set:
-    - **Point 1**: `(0.09, -0.005, 0)` — near outlet, bottom wall
-    - **Point 2**: `(0.09,  0.005, 0)` — near outlet, top wall
-13. A **LineChartView** opens on the right. In the chart series list, **uncheck everything except `U_X`**.
-    You should see a smooth parabola: zero at both walls (y = ±0.005), peak ≈ 0.2 m/s at the centre (y = 0).
+##### Step 6 — Verify the parabolic profile numerically (Plot Over Line)
+1. Select `01_simple_laminar.foam` in the Pipeline Browser (important: select the source, not Clip or Slice).
+2. **Filters → Search** → type `Plot Over Line` → select it → **Apply**.
+   Set:
+   - **Point 1**: `(0.09, -0.005, 0)` — near outlet, bottom wall
+   - **Point 2**: `(0.09,  0.005, 0)` — near outlet, top wall
+3. A **LineChartView** opens on the right. In the chart series list, **uncheck everything except `U_X`**.
+   You should see a smooth parabola: zero at both walls (y = ±0.005), peak ≈ 0.2 m/s at the centre (y = 0).
 
-**Step 7 — Streamlines (standard method for all experiments)**
+##### Step 7 — Streamlines (standard method for all experiments)
 
 Streamlines are the primary visualization tool across all experiments. They naturally reveal recirculation zones, flow separation, and secondary flows in later experiments (junctions, grafts).
 
@@ -239,7 +239,7 @@ Streamlines are the primary visualization tool across all experiments. They natu
 
 In a straight tube the streamlines will be straight and parallel. In future junction and graft experiments the same setup will automatically reveal recirculation zones and spiral flows.
 
-**Step 8 — Velocity arrows on a cross-section (Glyph)**
+##### Step 8 — Velocity arrows on a cross-section (Glyph)
 
 1. Select `Slice1` in the Pipeline Browser.
 2. **Filters → Search** → type `Glyph` → select it.
